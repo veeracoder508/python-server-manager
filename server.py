@@ -1,3 +1,4 @@
+"""a simple server management system in python"""
 # ----- IMPORTING ALL REQUIRMENTS -----
 import http.server
 import socketserver
@@ -8,19 +9,19 @@ import sys
 import signal
 import os
 import urllib.parse
-import threading # For cleaner server shutdown
-import psutil    # For platform-independent process management (REQUIRES: pip install psutil)
+import threading  # For cleaner server shutdown
+import psutil     # For platform-independent process management (REQUIRES: pip install psutil)
 from typing import Dict, Any, Optional
 import contextlib
 import subprocess # For running external commands
 from io import StringIO
 from colorama import init, Fore, Style, Back
-import re # NEW: Import for regular expressions to strip color codes
+import re         # Import for regular expressions to strip color codes
 
-# Initialize Colorama for cross-platform support. autoreset=True is very helpful!
+# -----INITIALISATION OF COLORAMA-----
 init(autoreset=True)
 
-# Define color variables for consistency
+# -----COLOR PALET-----
 COLOR_SUCCESS = Fore.GREEN
 COLOR_ERROR = Fore.RED + Style.BRIGHT
 COLOR_WARNING = Fore.YELLOW
@@ -50,7 +51,7 @@ class ServerPOSTError(ServerErrors): pass
 class ServerKillError(ServerErrors): pass
 class ServerNotFound(ServerErrors): pass
 class ServerAccessDenied(ServerErrors): pass
-class ServerManagerActionError(ServerErrors): pass # NEW: For errors during manager POST actions
+class ServerManagerActionError(ServerErrors): pass
 
 
 # ----- HELPER FUNCTIONS -----
@@ -118,6 +119,8 @@ def _strip_color_codes(message: str) -> str:
 
 # ----- MAIN SERVER MANAGER CLASS -----
 class Server:
+    """it is an simple server manager program in python
+    for simple api management and to manage multiple servers"""
     def __init__(self) -> None:
         # server_index maps {port_str: {"token": str, "pid": int}, ...}
         self.server_index: ServerIndex = {}
@@ -129,10 +132,13 @@ class Server:
         self.load_server_index_json()
 
     def _generate_token_name(self) -> str:
+        """to generate a name for the server tokens"""
         characters = string.ascii_letters + string.digits
         return ''.join(random.choice(characters) for _ in range(self.token_length))
     
     def load_server_index_json(self):
+        """to load all the servers data to self.server_index
+        from server\server.json"""
         try:
             with open(self.json_file, 'r', encoding='utf-8') as file:
                 data = json.load(file)
@@ -154,6 +160,8 @@ class Server:
             raise ServerDataBaseError(f"{COLOR_ERROR}Error loading server index JSON: {e}{COLOR_RESET}")
 
     def _generate_server_index_json(self):
+        """to write data to server\server.json from
+        self server_index"""
         try:
             with open(self.json_file, 'w', encoding='utf-8') as file:
                 json.dump(self.server_index, file, indent=4)
@@ -162,6 +170,11 @@ class Server:
             raise ServerDataBaseError(f"Error uploading server index JSON")
 
     def start_server(self, port: int, id: int):
+        """to start a server
+        :param port: the port number in which the server should run [eg. 8080]
+        :type port: int
+        :param id: the id for the server [eg. 1]
+        :type id: int"""
         port_str = str(port)
         
         # --- NEW LOGIC TO START A SERVER IN A SEPARATE PROCESS ---
@@ -187,7 +200,7 @@ class Server:
 
             # Replace your entire CustomHandler class with this code
             class CustomHandler(http.server.SimpleHTTPRequestHandler):
-                
+                """to handle GET and POST for the server"""
                 # 1. __init__ (Constructor) - REQUIRED
                 def __init__(self, *args, **kwargs):
                     """Initializes the CustomHandler, ensuring SimpleHTTPRequestHandler's __init__ is called."""
@@ -359,6 +372,7 @@ class Server:
             Handler = CustomHandler
 
             def shutdown_server_signal(signum, frame):
+                """to shutdown the server"""
                 print(f"\n{COLOR_WARNING}[{port}] Received termination signal. Closing server...{COLOR_RESET}")
                 global running_server_httpd
                 if running_server_httpd:
@@ -406,6 +420,7 @@ class Server:
         # --- END NEW LOGIC ---
 
     def list_servers(self):
+        """to lost all the active servers in server\server.json"""
         self.load_server_index_json()
         if not self.server_index:
             # Print a consistent formatted message for the web output
@@ -418,6 +433,7 @@ class Server:
             print(f"  {Fore.WHITE}Port: {COLOR_SUCCESS}{port}{COLOR_RESET}, {Fore.WHITE}PID: {COLOR_INFO}{info['pid']}{COLOR_RESET}, {Fore.WHITE}Token: {COLOR_DEBUG}{info['token']}{COLOR_RESET}")
 
     def format_server_list(self):
+        """to clear the server\server.json file"""
         try:
             # Removed load_server_index_json() as the goal is to clear it
             self.server_index = {}
@@ -426,8 +442,10 @@ class Server:
         except Exception as e:
             print(f"{COLOR_ERROR}Error formatting server list: {e}{COLOR_RESET}")
 
-    def kill_server(self, identifier: str):
-        """Kills a server process based on its indexed port or token."""
+    def kill_server(self, identifier: str): 
+        """Kills a server process based on its indexed port or token.
+        :param identifier: the port number or the token
+        :type identifier: str"""
         self.load_server_index_json()
 
         port_to_kill = None
@@ -488,7 +506,9 @@ class Server:
         Validates the token against the active server index.
         If valid, it removes the server from the index.
         It does NOT kill the OS process here; the handler does that after this returns True.
-        
+
+        :param token:
+        :tupe token: str
         Returns:
             bool: True if the token is valid and the server entry was removed, False otherwise.
         """
@@ -513,7 +533,9 @@ class Server:
             return False
 
     def remove_from_index(self, port_str: str):
-        """Removes a server entry from the index and saves the database."""
+        """Removes a server entry from the index and saves the database.
+        :param port_str:
+        :type potr_str: str"""
         # Need to re-add the save_index method that was presumably removed
         def save_index(self):
             self._generate_server_index_json()
@@ -573,4 +595,5 @@ if __name__ == "__main__":
             sys.exit(1)
     else:
         print(f"{COLOR_INFO}Usage: python server.py <start | kill | list | format> ...{COLOR_RESET}")
+
         sys.exit(1)
