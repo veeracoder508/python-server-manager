@@ -420,7 +420,7 @@ class Server:
         # --- END NEW LOGIC ---
 
     def list_servers(self):
-        """to lost all the active servers in server\server.json"""
+        """to lost all the active servers in server/server.json"""
         self.load_server_index_json()
         if not self.server_index:
             # Print a consistent formatted message for the web output
@@ -433,7 +433,7 @@ class Server:
             print(f"  {Fore.WHITE}Port: {COLOR_SUCCESS}{port}{COLOR_RESET}, {Fore.WHITE}PID: {COLOR_INFO}{info['pid']}{COLOR_RESET}, {Fore.WHITE}Token: {COLOR_DEBUG}{info['token']}{COLOR_RESET}")
 
     def format_server_list(self):
-        """to clear the server\server.json file"""
+        """to clear the server/server.json file"""
         try:
             # Removed load_server_index_json() as the goal is to clear it
             self.server_index = {}
