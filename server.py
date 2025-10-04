@@ -138,7 +138,7 @@ class Server:
     
     def load_server_index_json(self):
         """to load all the servers data to self.server_index
-        from server\server.json"""
+        from server/server.json"""
         try:
             with open(self.json_file, 'r', encoding='utf-8') as file:
                 data = json.load(file)
@@ -160,7 +160,7 @@ class Server:
             raise ServerDataBaseError(f"{COLOR_ERROR}Error loading server index JSON: {e}{COLOR_RESET}")
 
     def _generate_server_index_json(self):
-        """to write data to server\server.json from
+        """to write data to server/server.json from
         self server_index"""
         try:
             with open(self.json_file, 'w', encoding='utf-8') as file:
